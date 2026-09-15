@@ -1,0 +1,73 @@
+# A job running SDP 
+resources:
+
+  pipelines:
+    # 1. PIPELINE BRONZE
+    restaurants_bronze_pipeline:
+      name: "[${bundle.target}] Restaurants bronze pipeline SDP"
+      catalog: ${var.catalog}
+      schema: "${var.schema_bronze}"
+      serverless: true
+      libraries:
+        - glob:
+            include: "${workspace.file_path}/src/transformations/bronze/**"
+
+      configuration:
+        # Volumes path
+        customer_volume_path: ${var.customer_volume_path}
+        customer_reviews_volume_path: ${var.customer_reviews_volume_path}
+        orders_volume_path: ${var.orders_volume_path}
+        restaurants_volume_path: ${var.restaurants_volume_path}
+        menu_items_volume_path: ${var.menu_items_volume_path}
+
+    # 2. PIPELINE SILVER
+    restaurants_silver_pipeline:
+      name: "[${bundle.target}] Restaurants silver pipeline SDP"
+      catalog: ${var.catalog}
+      schema: "${var.schema_silver}"
+      serverless: true
+      libraries:
+        - glob:
+            include: "${workspace.file_path}/src/transformations/silver/**"
+
+      configuration:
+        catalog: ${var.catalog}
+        schema_bronze: ${var.schema_bronze}
+        schema_silver: ${var.schema_silver}
+
+    # 3. PIPELINE GOLD
+    restaurants_gold_pipeline:
+      name: "[${bundle.target}] Restaurants gold pipeline SDP"
+      catalog: ${var.catalog}
+      schema: "${var.schema_gold}"
+      serverless: true
+      libraries:
+        - glob:
+            include: "${workspace.file_path}/src/transformations/gold/**"
+
+      configuration:
+        catalog: ${var.catalog}
+        schema_silver: ${var.schema_silver}
+        schema_gold: ${var.schema_gold}
+
+  jobs:
+    restaurants_etl_job:
+      name: "[${bundle.target}] restaurants_etl_job"
+
+      tasks:
+        - task_key: run_bronze_restaurants_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.restaurants_bronze_pipeline.id}
+        
+        - task_key: run_silver_restaurants_pipeline
+          depends_on:
+            - task_key: run_bronze_restaurants_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.restaurants_silver_pipeline.id}
+
+        - task_key: run_gold_restaurants_pipeline
+          depends_on:
+            - task_key: run_silver_restaurants_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.restaurants_gold_pipeline.id}
+

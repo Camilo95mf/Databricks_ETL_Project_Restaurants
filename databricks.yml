@@ -1,0 +1,69 @@
+# This is a Declarative Automation Bundle definition for restaurants_insight.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: restaurants_insight
+  uuid: adf1205d-30cc-4a79-b052-ceedc6c93837
+
+include:
+  - resources/*.yml
+
+# Variable declarations. These variables are assigned in the dev/prod targets below.
+variables:
+  catalog:
+    description: The catalog to use
+    default: restaurants_project
+
+  schema_bronze:
+    description: The bronze schema to use
+    default: bronze
+  
+  schema_silver:
+    description: The silver schema to use
+    default: silver
+
+  schema_gold:
+    description: The gold schema to use
+    default: gold
+
+  customer_volume_path:
+    description: Volume path for customers files
+    default: /Volumes/${var.catalog}/bronze/raw_restaurants_data/customers
+
+  customer_reviews_volume_path:
+    description: Volume path for reviews files
+    default: /Volumes/${var.catalog}/bronze/raw_restaurants_data/customer_reviews
+
+  orders_volume_path:
+    description: Volume path for orders files
+    default: /Volumes/${var.catalog}/bronze/raw_restaurants_data/historical_orders
+
+  restaurants_volume_path:
+    description: Volume path for restaurants files
+    default: /Volumes/${var.catalog}/bronze/raw_restaurants_data/restaurants
+
+  menu_items_volume_path:
+    description: Volume path for menu files
+    default: /Volumes/${var.catalog}/bronze/raw_restaurants_data/menu_items
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    #workspace:
+      # host: #This info is managed in .env file to ensure security
+
+  prod:
+    mode: production
+    workspace:
+      # host: #This info is managed in .env file to ensure security
+      # We explicitly deploy to /Workspace/Users/username to make sure we only have a single copy.
+      root_path: /Workspace/Users/${workspace.current_user.userName}/dabs/.bundle/${bundle.target}/${bundle.name}
+    #variables:
+    #  catalog: challenge_project_prd
+    permissions:
+      - user_name: ${workspace.current_user.userName}
+        level: CAN_MANAGE
