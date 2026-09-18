@@ -3,7 +3,7 @@
 
 A production-grade, end-to-end ETL pipeline built on Databricks utilizing the **Medallion Architecture** to deliver high-quality, analytics-ready restaurant data. This project leverages **Structured Data Pipelines (SDP / Streaming Tables)** for continuous or batch data manipulation across stages and is fully orchestrated and packaged using **Declaratrive Automation Bundle (DABs)**.
 
-This project was built using the `sql` as the main language.
+This project was built using SQL as the main language.
 
 ---
 
